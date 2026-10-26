@@ -52,7 +52,7 @@ values = {
 }
 
 # Boolean value to be used for controlling the While Loop
-Playing = True
+playing = True
 
 
 # Step 2:-
@@ -112,7 +112,7 @@ class Hand:
 
         # if total value of Ace > 21 and i still have Ace
         # then change my Ace to be 1 instead of 11.
-        while self.aces > 21 and self.aces:
+        while self.value > 21 and self.aces:
             self.value -= 10
             self.aces -= 1
 
@@ -142,7 +142,7 @@ def take_bet(chips):
         except:
             print("Sorry please provide an Integer")
         else:
-            if chips.bet > chips.total:
+            if chips.bet > chips.total or chips.bet <= 0:
                 print(f"Sorry! You don't have enough Chips! You have {chips.total}")
             else:
                 break
@@ -160,3 +160,154 @@ def hit(deck, hand):
 
 
 # Step 8:- function for prompting the Player to Hit or Stand
+def hit_or_stand(deck, hand):
+    global playing  # to control an upcoming while loop
+
+    while True:
+        x = input("would you like to Hit or Stand 'h' or 's' ")
+
+        if x[0].lower() == "h":
+            hit(deck, hand)  # Hit function define above
+        elif x[0].lower() == "s":
+            print("Player stands. Dealer is Playing")
+            playing = False
+
+        else:
+            print("Sorry, I did not understand that! Please enter 'h' or 's' only!")
+            continue
+        break
+
+
+# Step 9:- function to display The Cards
+
+
+# This function is just gonna be very start of the FACE-OFF
+def show_some(player, dealer):
+
+    # dealer.cards[0] --> Hidden
+    # show only one of dealer's card
+    print("\n Dealer's hand: ")
+    print("First Card Hidden")
+    print(dealer.cards[1])
+
+    # show all of Player's Cards(2 Cards)
+    print("\n Player's Hand: ")
+    for card in player.cards:
+        print(card)
+
+
+# This is at the End, where you see who Wins, Lose or if it's a Push
+def show_all(player, dealer):
+    # show all the Dealer's cards
+    print("\n Dealer's Hand: ")
+    for card in dealer.cards:
+        print(card)
+
+    # calculate and display Value (e.g--> Jack+Queen = 20)
+    print(f"Value of the Dealer's hand is: {dealer.value}")
+
+    # show all of Player's Cards(2 Cards)
+    print("\n Player's Hand: ")
+    for card in player.cards:
+        print(card)
+    print(f"Value of the Player's hand is: {player.value}")
+
+
+# Step 10:- function to handle End of the Game Scenarios
+def player_busts(player, dealer, chips):
+    print("Player Bust!")
+    chips.lose_bet()
+
+
+def player_wins(player, dealer, chips):
+    print("Player WINS!")
+    chips.win_bet()
+
+
+def dealer_busts(player, dealer, chips):
+    print("Dealer Bust!")
+    chips.win_bet()
+
+
+def dealer_wins(player, dealer, chips):
+    print("Dealer Wins!")
+    chips.lose_bet()
+
+
+def push(player, dealer):
+    print("TIE! PUSH")
+
+
+# Step 11:- LOGIC OF THE GAME.
+
+while True:
+    # Print an opening statement
+    print("WELCOME TO bLACKJACK")
+
+    # Create & shuffle the deck, deal two cards to each player
+    deck = Deck()
+    deck.shuffle()
+
+    player_hand = Hand()
+    player_hand.add_card(deck.deal())
+    player_hand.add_card(deck.deal())
+
+    dealer_hand = Hand()
+    dealer_hand.add_card(deck.deal())
+    dealer_hand.add_card(deck.deal())
+
+    # Set up the Player's chips
+    player_chips = Chips()
+
+    # Prompt the Player for their bet
+    take_bet(player_chips)
+
+    # Show cards (but keep one dealer card hidden)
+    show_some(player_hand, dealer_hand)
+
+    while playing:  # recall this variable from our hit_or_stand function
+        # Prompt for Player to Hit or Stand
+        hit_or_stand(deck, player_hand)
+
+        # Show cards (but keep one dealer card hidden)
+        show_some(player_hand, dealer_hand)
+
+        # If player's hand exceeds 21, run player_busts() and break out of loop
+        if player_hand.value > 21:
+            player_busts(player_hand, dealer_hand, player_chips)
+
+            # show all cards of the Dealer's hand,
+            show_all(player_hand, dealer_hand)
+
+            break
+
+    # If Player hasn't busted, play Dealer's hand until Dealer reaches 17
+    if player_hand.value <= 21:
+        while dealer_hand.value < 17:
+            hit(deck, dealer_hand)
+
+        # Show all cards
+        show_all(player_hand, dealer_hand)
+
+        # Run different winning scenarios
+        if dealer_hand.value > 21:
+            dealer_busts(player_hand, dealer_hand, player_chips)
+        elif dealer_hand.value > player_hand.value:
+            dealer_wins(player_hand, dealer_hand, player_chips)
+        elif dealer_hand.value < player_hand.value:
+            player_wins(player_hand, dealer_hand, player_chips)
+        else:
+            push(player_hand, dealer_hand)
+
+    # Inform Player of their chips total
+    print(f"\n Player total chips at: {player_chips.total}")
+    # Ask to play again
+    new_game = input("Would you like to go for an another round y/n? ")
+
+    if new_game[0].lower() == "y":
+        playing = True
+        continue
+    else:
+        print("Thanks for playing")
+
+        break
